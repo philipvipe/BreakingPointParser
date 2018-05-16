@@ -20,6 +20,10 @@ public class MethodExecution {
         return this.qualifiedName.equals(other.qualifiedName);
     }
 
+    public String getMethodName() {
+        return qualifiedName;
+    }
+
     public MethodExecution join(MethodExecution other) {
         // Cannot join the results of two executions for different methods
         if (!this.isSameMethod(other)) {
