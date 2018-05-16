@@ -1,3 +1,4 @@
+import analyze.AltAnalyzer;
 import analyze.Analyzer;
 import data.ExecutionTrace;
 import data.ExecutionTracer;
@@ -41,7 +42,8 @@ public class Driver {
             traces.add(new ExecutionTrace(testName, passed, tracer.collapse()));
         }
 
-        printLikelihoods(Analyzer.analyze(traces));
+        //printLikelihoods(Analyzer.analyze(traces));
+        AltAnalyzer.analyze(traces);
     }
 
     private static void printLikelihoods(Map<String, Double> likelihoods) {
