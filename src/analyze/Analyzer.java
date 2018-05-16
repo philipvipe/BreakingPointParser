@@ -2,23 +2,35 @@ package analyze;
 
 import data.ExecutionTrace;
 import data.MethodExecution;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 public class Analyzer {
-    public static void analyze(Set<ExecutionTrace> executions) {
-        Map<String, Map<Integer, Set<ExecutionTrace>>> executionOccurences = getExecutionOccurences(executions);
+    public static Map<String, Double> analyze(Set<ExecutionTrace> executions) {
+        Map<String, Double> likelihoods = new HashMap<>();
 
+        Map<String, Map<Integer, Set<ExecutionTrace>>> executionOccurences = getExecutionOccurences(executions);
         for (var entry : executionOccurences.entrySet()) {
             String methodName = entry.getKey();
-            var branchMap = entry.getKey();
+            var branchMap = entry.getValue();
 
-//            for (var branchEntry : branchMap) {
-//
-//            }
+            for (var branchEntry : branchMap.entrySet()) {
+                int branchID = branchEntry.getKey();
+                Set<ExecutionTrace> traceSet = branchEntry.getValue();
+
+                int passCount = 0, failCount = 0;
+                for (ExecutionTrace trace : traceSet) {
+                    if (trace.isPassing()) {
+                        passCount++;
+                    } else {
+                        failCount++;
+                    }
+                }
+
+                double likelihood = failCount / (passCount + failCount);
+                likelihoods.put(methodName + "_" + branchID, likelihood);
+            }
         }
+        return likelihoods;
     }
 
     public static Map<String, Map<Integer, Set<ExecutionTrace>>> getExecutionOccurences(Set<ExecutionTrace> executions){
