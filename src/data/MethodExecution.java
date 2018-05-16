@@ -1,5 +1,6 @@
 package data;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class MethodExecution {
@@ -15,9 +16,13 @@ public class MethodExecution {
         this(qualifiedName, new int[0]);
     }
 
+    public boolean isSameMethod(MethodExecution other) {
+        return this.qualifiedName.equals(other.qualifiedName);
+    }
+
     public MethodExecution join(MethodExecution other) {
         // Cannot join the results of two executions for different methods
-        if (!other.qualifiedName.equals(this.qualifiedName)) {
+        if (!this.isSameMethod(other)) {
             throw new RuntimeException("Cannot join methods with different names");
         }
 
