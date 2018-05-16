@@ -3,18 +3,18 @@ package data;
 import java.util.Set;
 
 public class ExecutionTrace {
-    private final String qualifiedName;
+    private final String testName;
     private final boolean passing;
     private final Set<MethodExecution> executions;
 
-    public ExecutionTrace(String qualifiedName, boolean passing, Set<MethodExecution> executions) {
-        this.qualifiedName = qualifiedName;
+    public ExecutionTrace(String testName, boolean passing, Set<MethodExecution> executions) {
+        this.testName = testName;
         this.passing = passing;
         this.executions = executions;
     }
 
     public String getName() {
-        return this.qualifiedName;
+        return this.testName;
     }
 
     public boolean isPassing() {
