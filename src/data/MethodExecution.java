@@ -56,6 +56,14 @@ public class MethodExecution {
         return timesBranchTaken(branchNum) > 0;
     }
 
+    public String getName() {
+        return this.qualifiedName;
+    }
+
+    public int numberOfBranches() {
+        return this.branches.length;
+    }
+
     public int timesBranchTaken(int branchNum) {
         if (branchNum >= this.branches.length) {
             return 0;
