@@ -8,20 +8,21 @@ public class Analyzer {
     public static Map<String, Double> analyze(Set<ExecutionTrace> executions) {
         Map<String, Double> likelihoods = new HashMap<>();
 
-        Map<String, Map<Integer, Set<ExecutionTrace>>> executionOccurences = getExecutionOccurences(executions);
+        var executionOccurences = getExecutionOccurences(executions);
         for (var entry : executionOccurences.entrySet()) {
             String methodName = entry.getKey();
             var branchMap = entry.getValue();
 
             for (var branchEntry : branchMap.entrySet()) {
                 int branchID = branchEntry.getKey();
-                Set<ExecutionTrace> traceSet = branchEntry.getValue();
+                var traceSet = branchEntry.getValue();
 
-                boolean[] branchOptions = {true, false};
-                for (boolean tookBranch : branchOptions){
+                var branchOptions = MethodExecution.TakenStatus.values();
+                for (var tookBranch : branchOptions){
                     int passCount = 0, failCount = 0;
-                    for (ExecutionTrace trace : traceSet) {
-                        if (trace.isPassing() == tookBranch) {
+                    for (ExecutionTrace trace : traceSet.get(tookBranch)) {
+
+                        if (trace.isPassing()) {
                             passCount++;
                         } else {
                             failCount++;
@@ -32,7 +33,7 @@ public class Analyzer {
                     if (traceSet.size() > 0) {
                         likelihood = failCount / (passCount + failCount);
                     }
-                    String executionName = methodName + "_" + branchID + "_" + (tookBranch? "entered" : "notentered");
+                    String executionName = methodName + "_" + branchID + "_" + (tookBranch.toString());
                     likelihoods.put(executionName, likelihood);
                 }
             }
@@ -40,15 +41,15 @@ public class Analyzer {
         return likelihoods;
     }
 
-    public static Map<String, Map<Integer, Set<ExecutionTrace>>> getExecutionOccurences(Set<ExecutionTrace> executions){
-        Map<String, Map<Integer, Set<ExecutionTrace>>> executionOcurrences = new HashMap<>();
+    public static Map<String, Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>>> getExecutionOccurences(Set<ExecutionTrace> executions){
+        Map<String, Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>>> executionOcurrences = new HashMap<>();
 
         Map<String, Set<ExecutionTrace>> methodOccurences = getMethodOccurrences(executions);
         for (Map.Entry<String, Set<ExecutionTrace>> entry : methodOccurences.entrySet()) {
             String methodName = entry.getKey();
             Set<ExecutionTrace> traceSet = entry.getValue();
 
-            Map<Integer, Set<ExecutionTrace>> branchOccurrences = getMethodBranchOccurrences(traceSet, methodName);
+            var branchOccurrences = getMethodBranchOccurrences(traceSet, methodName);
             executionOcurrences.put(methodName, branchOccurrences);
 
         }
@@ -76,38 +77,50 @@ public class Analyzer {
         return methodOccurrences;
     }
 
-    public static Map<Integer, Set<ExecutionTrace>> getMethodBranchOccurrences(
+    public static Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>> getMethodBranchOccurrences(
             Set<ExecutionTrace> executions,
             String methodName) {
 
-        Map<Integer, Set<ExecutionTrace>> branchOccurrences = new HashMap<>();
+        Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>> branchOccurrences = new HashMap<>();
 
         for (ExecutionTrace trace : executions) {
             MethodExecution method = getMethodExecution(trace, methodName);
 
             for (int i = 0; i < method.numberOfBranches(); i++) {
-                if (method.wasBranchTaken(i)) {
-                    if (branchOccurrences.containsKey(i)) {
-                        Set<ExecutionTrace> branchSet = branchOccurrences.get(i);
-                        branchSet.add(trace);
-                    } else {
-                        Set<ExecutionTrace> branchSet = new HashSet<>();
-                        branchSet.add(trace);
-                        branchOccurrences.put(i, branchSet);
+                MethodExecution.TakenStatus status = method.branchStatus(i);
+                if (branchOccurrences.containsKey(i)) {
+                    Set<ExecutionTrace> branchSet = branchOccurrences.get(i).get(status);
+                    branchSet.add(trace);
+                } else {
+                    branchOccurrences.put(i, new HashMap<>());
+
+                    var branchOptions = MethodExecution.TakenStatus.values();
+                    for (var branchStatus : branchOptions) {
+                        branchOccurrences.get(i).put(branchStatus, new HashSet<>());
                     }
+                    Set<ExecutionTrace> branchSet = branchOccurrences.get(i).get(status);
+                    branchOccurrences.get(i).put(status, branchSet);
                 }
+
             }
 
             // special case: if no branches, invent a -1 branch
             int newBranchKey = -1;
             if (method.numberOfBranches() == 0) {
                 if (branchOccurrences.containsKey(newBranchKey)) {
-                    Set<ExecutionTrace> branchSet = branchOccurrences.get(newBranchKey);
+                    Set<ExecutionTrace> branchSet = branchOccurrences.get(newBranchKey).get(MethodExecution.TakenStatus.UNSEEN);
                     branchSet.add(trace);
                 } else {
-                    Set<ExecutionTrace> branchSet = new HashSet<>();
+                    branchOccurrences.put(newBranchKey, new HashMap<>());
+
+                    var branchOptions = MethodExecution.TakenStatus.values();
+                    for (var branchStatus : branchOptions) {
+                        branchOccurrences.get(newBranchKey).put(branchStatus, new HashSet<>());
+                    }
+
+                    Set<ExecutionTrace> branchSet = branchOccurrences.get(newBranchKey).get(MethodExecution.TakenStatus.UNSEEN);
                     branchSet.add(trace);
-                    branchOccurrences. put(newBranchKey, branchSet);
+                    branchOccurrences.get(newBranchKey).put(MethodExecution.TakenStatus.UNSEEN, branchSet);
                 }
             }
         }
