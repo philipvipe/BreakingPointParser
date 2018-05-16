@@ -1,7 +1,5 @@
 package parser;
 
-import java.io.*;
-
 import data.IExecutionTracer;
 
 public class Parser {
@@ -12,33 +10,14 @@ public class Parser {
 	public Parser(IExecutionTracer tracer){
 		this.tracer = tracer;
 	}
-	
-//	public static void main(String[] args) {
-//		//String filename = args[0];	// filename of breaking point output we want to parse
-//		Parser parser = new Parser();
-//		//parser.readFile(filename);
-//		parser.readFile("foo");
-//	}
 
-	public void readFile(String filename){
-		System.out.println("Parsing through " + filename);
-		try {
-			File file = new File(filename);
-			FileReader fileReader = new FileReader(file);
-			BufferedReader bufferedReader = new BufferedReader(fileReader);
-			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-				parseLine(line);
-			}
-			fileReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void parseLines(Iterable<String> lines){
+		for(String line: lines){
+			parseLineHelper(line);
 		}
 	}
 
-	public void parseLine(String full_line){
-
-		//System.out.println("Parsing..." + full_line);
+	private void parseLineHelper(String full_line){
 
 		String line = full_line.substring(full_line.indexOf(":") + 2);
 		String arrow = line.substring(0,3);
