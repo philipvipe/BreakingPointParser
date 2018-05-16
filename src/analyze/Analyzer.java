@@ -8,8 +8,8 @@ public class Analyzer {
     public static Map<String, Double> analyze(Set<ExecutionTrace> executions) {
         Map<String, Double> likelihoods = new HashMap<>();
 
-        var executionOccurences = getExecutionOccurences(executions);
-        for (var entry : executionOccurences.entrySet()) {
+        var executionOccurrences = getExecutionOccurrences(executions);
+        for (var entry : executionOccurrences.entrySet()) {
             String methodName = entry.getKey();
             var branchMap = entry.getValue();
 
@@ -19,22 +19,24 @@ public class Analyzer {
 
                 var branchOptions = MethodExecution.TakenStatus.values();
                 for (var tookBranch : branchOptions){
-                    for (ExecutionTrace trace : traceSet.get(tookBranch)) {
-                        int passCount = 0, failCount = 0;
+                int passCount = 0, failCount = 0;
 
-                        if (trace.isPassing()) {
-                            passCount++;
-                        } else {
-                            failCount++;
-                        }
+                for (ExecutionTrace trace : traceSet.get(tookBranch)) {
 
-                        double likelihood = 0;
-                        if (traceSet.size() > 0) {
-                            likelihood = failCount / (passCount + failCount);
-                        }
-                        String executionName = methodName + "_" + branchID + "_" + (tookBranch.toString());
-                        likelihoods.put(executionName, likelihood);
+                    if (trace.isPassing()) {
+                        passCount++;
+                    } else {
+                        failCount++;
                     }
+                }
+
+                double likelihood = 0;
+                if (traceSet.get(tookBranch).size() > 0) {
+                    likelihood = failCount / (passCount + failCount);
+                }
+                String executionName = methodName + "_" + branchID + "_" + (tookBranch.toString());
+                likelihoods.put(executionName, likelihood);
+
 
                 }
             }
@@ -42,7 +44,7 @@ public class Analyzer {
         return likelihoods;
     }
 
-    public static Map<String, Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>>> getExecutionOccurences(Set<ExecutionTrace> executions){
+    public static Map<String, Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>>> getExecutionOccurrences(Set<ExecutionTrace> executions){
         Map<String, Map<Integer, Map<MethodExecution.TakenStatus, Set<ExecutionTrace>>>> executionOcurrences = new HashMap<>();
 
         Map<String, Set<ExecutionTrace>> methodOccurences = getMethodOccurrences(executions);
