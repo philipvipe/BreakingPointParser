@@ -6,6 +6,7 @@ import parser.Parser;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Driver {
@@ -40,7 +41,15 @@ public class Driver {
             traces.add(new ExecutionTrace(testName, passed, tracer.collapse()));
         }
 
-        Analyzer.analyze(traces);
+        printLikelihoods(Analyzer.analyze(traces));
+    }
+
+    private static void printLikelihoods(Map<String, Double> likelihoods) {
+        System.out.println("Likelihoods of containing bugs:");
+
+        for (var entry : likelihoods.entrySet()) {
+            System.out.println("\t" + entry.getKey() + ": " + entry.getValue());
+        }
     }
 
     private static Iterable<String> getFileLineIterator(File f) throws FileNotFoundException {
