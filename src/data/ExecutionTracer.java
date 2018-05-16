@@ -1,9 +1,6 @@
 package data;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ExecutionTracer implements IExecutionTracer {
@@ -25,7 +22,9 @@ public class ExecutionTracer implements IExecutionTracer {
         Optional.ofNullable(liveMethodExecutions.pop())
                 .ifPresentOrElse(
                         p -> completedMethodExecutions.add(0, p),
-                        () -> {throw new RuntimeException("Attempted return on empty stack");});
+                        () -> {
+                            throw new RuntimeException("Attempted return on empty stack");
+                        });
     }
 
     @Override
@@ -33,17 +32,18 @@ public class ExecutionTracer implements IExecutionTracer {
         Optional.ofNullable(liveMethodExecutions.pop())
                 .ifPresentOrElse(
                         p -> liveMethodExecutions.push(p.withBranch(branchNum, taken)),
-                        () -> {throw new RuntimeException("Attempted branch on empty stack");});
+                        () -> {
+                            throw new RuntimeException("Attempted branch on empty stack");
+                        });
     }
 
     @Override
-    public List<MethodExecution> collapse() {
-        completedMethodExecutions.stream()
+    public Set<MethodExecution> collapse() {
+        return completedMethodExecutions.stream()
                 .collect(Collectors.groupingBy(MethodExecution::getMethodName))
                 .values().stream()
-                .map(ms -> ms.stream().reduce((m1, m2) -> m1.join(m2)))
-                .collect(Collectors.toList());
+                .map(ms -> ms.stream().reduce(MethodExecution::join).orElseThrow())
+                .collect(Collectors.toSet());
 
-        return completedMethodExecutions;
     }
 }
