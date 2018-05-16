@@ -57,6 +57,7 @@ public class MethodExecution {
 
     public MethodExecution withBranch(int branchNum, boolean taken) {
         TakenStatus[] thisBranch = new TakenStatus[branchNum + 1];
+        Arrays.setAll(thisBranch, (x) -> UNSEEN);
 
         thisBranch[branchNum] = taken ? TAKEN : NOT_TAKEN;
 
