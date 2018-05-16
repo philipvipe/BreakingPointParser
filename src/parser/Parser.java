@@ -11,13 +11,13 @@ public class Parser {
 		this.tracer = tracer;
 	}
 
-	public void readFile(Iterable<String> lines){
+	public void parseLines(Iterable<String> lines){
 		for(String line: lines){
-			parseLine(line);
+			parseLineHelper(line);
 		}
 	}
 
-	private void parseLine(String full_line){
+	private void parseLineHelper(String full_line){
 
 		String line = full_line.substring(full_line.indexOf(":") + 2);
 		String arrow = line.substring(0,3);
