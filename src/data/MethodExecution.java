@@ -48,9 +48,9 @@ public class MethodExecution {
     }
 
     public MethodExecution withBranch(int branchNum, boolean taken) {
-        int[] thisBranch = new int[branchNum];
+        int[] thisBranch = new int[branchNum + 1];
 
-        thisBranch[branchNum - 1] = 1;
+        thisBranch[branchNum] = taken ? 1 : 0;
 
         return this.join(new MethodExecution(this.qualifiedName, thisBranch));
     }

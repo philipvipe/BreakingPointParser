@@ -10,6 +10,8 @@ public class ExecutionTracer implements IExecutionTracer {
     public ExecutionTracer() {
         this.completedMethodExecutions = new ArrayList<>();
         this.liveMethodExecutions = new Stack<>();
+
+        this.liveMethodExecutions.push(new MethodExecution("dummy_main"));
     }
 
     @Override
@@ -39,6 +41,8 @@ public class ExecutionTracer implements IExecutionTracer {
 
     @Override
     public Set<MethodExecution> collapse() {
+        onReturn(); // Return from the dummy main
+
         return completedMethodExecutions.stream()
                 .collect(Collectors.groupingBy(MethodExecution::getMethodName))
                 .values().stream()

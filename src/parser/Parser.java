@@ -3,56 +3,51 @@ package parser;
 import data.IExecutionTracer;
 
 public class Parser {
+    // Contains branch num if we are not sure if it branched or not
+    private int checkForBranch = -1;
 
-	private int checkForBranch = -1; // contains branch num if we are not sure if it branched or not
-	private IExecutionTracer tracer;
-	
-	public Parser(IExecutionTracer tracer){
-		this.tracer = tracer;
-	}
+    private final IExecutionTracer tracer;
 
-	public void parseLines(Iterable<String> lines){
-		for(String line: lines){
-			parseLineHelper(line);
-		}
-	}
+    public Parser(IExecutionTracer tracer) {
+        this.tracer = tracer;
+    }
 
-	private void parseLineHelper(String full_line){
+    public void parseLines(Iterable<String> lines) {
+        for (String line : lines) {
+            parseLineHelper(line);
+        }
+    }
 
-		String line = full_line.substring(full_line.indexOf(":") + 2);
-		String arrow = line.substring(0,3);
+    private void parseLineHelper(final String line) {
+        // last line was a branch condition
+        if (checkForBranch != -1) {
+            var branchNum = checkForBranch;
+            checkForBranch = -1;
 
-		// last line was a branch condition
-		if(checkForBranch != -1){
-			if(line.contains("Did not branch!")){
-				tracer.onBranch(checkForBranch, false);
-			}
-			else{
-				tracer.onBranch(checkForBranch, true);
-			}
-			checkForBranch = -1; // revert back to initial flag
-		}
-		
-		// conditional
-		if(arrow.contains("<") && arrow.contains(">")){
-			
-			line = line.substring(4);
-			int index = line.indexOf("?");
-			checkForBranch = Integer.parseInt(line.substring(index - 1, index)); // tell parser to check next line to see if it branches			
-		}
-		// a method is calling another method
-		else if(arrow.contains(">")){
+            if (line.contains("Did not branch!")) {
+                tracer.onBranch(branchNum, false);
+                return;
+            } else {
+                // Do not return in this case, since the line contains logic
+                tracer.onBranch(branchNum, true);
+            }
+        }
 
-			line = line.substring(4);
-			int space_index = line.indexOf(" ");
-			String calleeMethod = line.substring(space_index + 1);
-			
-			tracer.onCall(calleeMethod);
-		}
-		else if(arrow.contains("<")){
-			tracer.onReturn();
-		}
-	}
+        var arrow = line.substring(0, 3);
+        var post_arrow = line.substring(4);
+
+        if (arrow.equals("<->")) {
+            int index = post_arrow.indexOf("?");
+            checkForBranch = Integer.parseInt(post_arrow.substring(index - 1, index)); // tell parser to check next line to see if it branches
+        } else if (arrow.equals("-->")) {
+            int space_index = post_arrow.indexOf(" ");
+            String calleeMethod = post_arrow.substring(space_index + 1);
+
+            tracer.onCall(calleeMethod);
+        } else if (arrow.equals("<--")) {
+            tracer.onReturn();
+        }
+    }
 
 
 }
