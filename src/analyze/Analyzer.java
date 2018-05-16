@@ -19,22 +19,23 @@ public class Analyzer {
 
                 var branchOptions = MethodExecution.TakenStatus.values();
                 for (var tookBranch : branchOptions){
-                    int passCount = 0, failCount = 0;
                     for (ExecutionTrace trace : traceSet.get(tookBranch)) {
+                        int passCount = 0, failCount = 0;
 
                         if (trace.isPassing()) {
                             passCount++;
                         } else {
                             failCount++;
                         }
+
+                        double likelihood = 0;
+                        if (traceSet.size() > 0) {
+                            likelihood = failCount / (passCount + failCount);
+                        }
+                        String executionName = methodName + "_" + branchID + "_" + (tookBranch.toString());
+                        likelihoods.put(executionName, likelihood);
                     }
 
-                    double likelihood = 0;
-                    if (traceSet.size() > 0) {
-                        likelihood = failCount / (passCount + failCount);
-                    }
-                    String executionName = methodName + "_" + branchID + "_" + (tookBranch.toString());
-                    likelihoods.put(executionName, likelihood);
                 }
             }
         }
