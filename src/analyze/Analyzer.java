@@ -17,17 +17,24 @@ public class Analyzer {
                 int branchID = branchEntry.getKey();
                 Set<ExecutionTrace> traceSet = branchEntry.getValue();
 
-                int passCount = 0, failCount = 0;
-                for (ExecutionTrace trace : traceSet) {
-                    if (trace.isPassing()) {
-                        passCount++;
-                    } else {
-                        failCount++;
+                boolean[] branchOptions = {true, false};
+                for (boolean tookBranch : branchOptions){
+                    int passCount = 0, failCount = 0;
+                    for (ExecutionTrace trace : traceSet) {
+                        if (trace.isPassing() == tookBranch) {
+                            passCount++;
+                        } else {
+                            failCount++;
+                        }
                     }
-                }
 
-                double likelihood = failCount / (passCount + failCount);
-                likelihoods.put(methodName + "_" + branchID, likelihood);
+                    double likelihood = 0;
+                    if (traceSet.size() > 0) {
+                        likelihood = failCount / (passCount + failCount);
+                    }
+                    String executionName = methodName + "_" + branchID + "_" + (tookBranch? "entered" : "notentered");
+                    likelihoods.put(executionName, likelihood);
+                }
             }
         }
         return likelihoods;
